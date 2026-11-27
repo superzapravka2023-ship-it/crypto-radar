@@ -1,9 +1,12 @@
 import asyncio
 import hmac
+import logging
 import time
 from datetime import UTC, datetime
 
 from .sources import UpstreamError, request
+
+LOG = logging.getLogger("radar")
 
 LABELS = {
     "waiting": "ждём условие входа", "open": "условие входа выполнено", "partial": "первая цель достигнута",
@@ -89,7 +92,10 @@ class Telegram:
         updates = await self.call("getUpdates", timeout=24, offset=offset,
                                   allowed_updates=["message", "callback_query"])
         for update in updates:
-            await self.handle(update)
+            try:
+                await self.handle(update)
+            except Exception:
+                LOG.exception("telegram update %s failed", update.get("update_id"))
             self.store.put("telegram", "offset", update["update_id"] + 1)
         if not updates:
             await asyncio.sleep(.25)

@@ -110,6 +110,7 @@ class Store:
 
     def usage(self):
         return self.execute(
-            """SELECT model, status, SUM(micros), COUNT(*), SUM(tokens_in), SUM(tokens_out)
+            """SELECT model, status, CAST(SUM(micros) AS BIGINT), COUNT(*),
+               CAST(SUM(tokens_in) AS BIGINT), CAST(SUM(tokens_out) AS BIGINT)
                FROM radar_usage WHERE day=? GROUP BY model, status ORDER BY model, status""", (self.today(),)
         ).fetchall()
